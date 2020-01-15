@@ -6,47 +6,72 @@
 #include <memory>
 #include <atomic>
 
-template <class T>
-struct Atomic: public std::atomic<T> {
-    using base = std::atomic<T>;
-    using base::atomic;
-    
-    T operator = (const T &desired) noexcept {
-        return base::operator = (desired);
-    }
-    
-    T operator = (const T &desired) volatile noexcept {
-        return base::operator = (desired);
-    }
-    
-    Atomic& operator=(const Atomic&) = delete;
-    Atomic& operator=(const Atomic&) volatile = delete;
-
-    template <class ...Args>
-    void emplace_store(Args &&...args) noexcept {
-        base::store(T{std::forward<Args>(args)...});
-    }
-    
-    template <class ...Args>
-    void emplace_store(Args &&...args) volatile noexcept {
-        base::store(T{std::forward<Args>(args)...});
-    }
-};
-
 struct forwardListNode_base {
-    forwardListNode_base *next = nullptr;
+    std::atomic<forwardListNode_base*> next = nullptr;
 };
 
 template <class T>
 class Forward_list {
     struct Node: public forwardListNode_base {
         T obj;
+        
+        template <class ...Args>
+        Node(Args &&...args):
+            forwardListNode_base{},
+            obj{std::forward<Args>(args)...}
+        {}
     };
     
-    Atomic<forwardListNode_base> before_start;
-    Atomic<forwardListNode_base> end;
+    forwardListNode_base before_start;
+    forwardListNode_base *last = nullptr;
     
 public:
+    Forward_list() = default
+    
+    Forward_list(const Forward_list&) = delete;
+    Forward_list(Forward_list&&) = delete;
+    
+    Forward_list& operator = (const Forward_list&) = delete;
+    Forward_list& operator = (Forward_list&&) = delete;
+    
+    /**
+      * Try to pop front element.
+      * If failed, then return no objects.
+      */
+    std::optional<T> pop_front() noexcept {
+        ;
+        
+        // Need to update last
+    }
+    
+    template <class ...Args>
+    void emplace_back(Args &&...args) {
+        auto new_node = Node{std::forward<Args>(args)...};
+        
+        if (last == nullptr) {
+            ;
+        }
+        
+        forwardListNode *end = nullptr;
+        while (last->next.compare_exchage_weak(end, &new_node)) {
+            // Wait for last to be updated;
+            end = nullptr;
+        }
+        
+        last = &new_node;
+    }
+    
+    ~Forward_list() {
+        ;
+    }
+
+};
+
+template <class T>
+class queue {
+    using Container_t = Forward_list<T>;
+    using iterator = typename Container_t::iterator;
+    
     Forward_list() noexcept {
         before_start.emplace_store(&end);
         end.emplace_store();
@@ -61,14 +86,6 @@ public:
     
     ~Forward_list() {
         ;
-    }
-};
-
-template <class T>
-class queue {
-    using Container_t = Forward_list<T>;
-    using iterator = typename Container_t::iterator;
-    
     std::atomic_uintmax_t producers_v;
     Container_t data;
     
