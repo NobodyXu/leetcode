@@ -9,8 +9,8 @@
 class Solution {
 public:
     ListNode* reverseBetween(ListNode* head, int m, int n) {
-        ListNode *start = head;
-        ListNode **before_start = &start;
+        ListNode *ret = head;
+        ListNode **before_start = &ret;
         
         for (int i = 1; i < m; ++i)
             before_start = &(*before_start)->next;
@@ -32,6 +32,6 @@ public:
         *before_start = prev;
         new_last_node->next = curr;
         
-        return start;
+        return ret;
     }
 };
