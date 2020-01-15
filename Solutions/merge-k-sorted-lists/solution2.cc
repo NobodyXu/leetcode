@@ -1,18 +1,98 @@
 #include <cstddef>
+#include <utility>
+#include <optional>
+
 #include <thread>
 #include <memory>
+#include <atomic>
 
 template <class T>
-class forward_list {
-    ;
+struct Atomic: public std::atomic<T> {
+    using base = std::atomic<T>;
+    using base::atomic;
+    
+    T operator = (const T &desired) noexcept {
+        return base::operator = (desired);
+    }
+    
+    T operator = (const T &desired) volatile noexcept {
+        return base::operator = (desired);
+    }
+    
+    Atomic& operator=(const Atomic&) = delete;
+    Atomic& operator=(const Atomic&) volatile = delete;
+
+    template <class ...Args>
+    void emplace_store(Args &&...args) noexcept {
+        base::store(T{std::forward<Args>(args)...});
+    }
+    
+    template <class ...Args>
+    void emplace_store(Args &&...args) volatile noexcept {
+        base::store(T{std::forward<Args>(args)...});
+    }
+};
+
+struct forwardListNode_base {
+    forwardListNode_base *next = nullptr;
+};
+
+template <class T>
+class Forward_list {
+    struct Node: public forwardListNode_base {
+        T obj;
+    };
+    
+    Atomic<forwardListNode_base> before_start;
+    Atomic<forwardListNode_base> end;
+    
+public:
+    Forward_list() noexcept {
+        before_start.emplace_store(&end);
+        end.emplace_store();
+    }
+    
+    Forward_list(const Forward_list&) = delete;
+    Forward_list(Forward_list &&other) = delete;
+    
+    std::optional<T> pop_front() noexcept {
+        ;
+    }
+    
+    ~Forward_list() {
+        ;
+    }
 };
 
 template <class T>
 class queue {
-    using Container_t = forward_list<T>;
-    using iterator = typename Container_t::
+    using Container_t = Forward_list<T>;
+    using iterator = typename Container_t::iterator;
+    
+    std::atomic_uintmax_t producers_v;
     Container_t data;
     
+public:
+    queue() noexcept:
+        producers_v{0}
+    {
+        ;
+    }
+    
+    bool has_producers() const noexcept {
+        return producers_v.load() != 0;
+    }
+    
+    auto get_producers() const noexcept {
+        return producers_v.load();
+    }
+    
+    /**
+      * blocking call
+      */
+    T consume() noexcept {
+        auto ret = data.pop_front();
+    }
 };
 
 template <class Function, class ...Args>
