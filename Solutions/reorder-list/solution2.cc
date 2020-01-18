@@ -1,46 +1,49 @@
-#include <forward_list>
+#include <array>
 
 #include <cstddef>
 #include <cstdint>
 #include <utility>
 
-/**
- * Simple_SkipList is a simplified version of SkipList
- * that is capable of calculating the middle point of the
- * list quickly.
- * 
- * Best case O(1), Worst case O().
- */
-class Simple_SkipList {
-    struct SkipNode {
-        ListNode *node_ptr;
-        std::size_t index;
-    };
-    
-    ListNode *head;
-    std::size_t len;
-    
-    std::forward_list<> skipNodes;
-
-public:
-    Simple_SkipList(ListNode *head) {
-        ;
-    }
-    
-    auto size() -> std::size_t {
-        return len;
-    }
-    
-    /**
-      * Returns (odd_part, even_part), which both != nullptr
-      * 
-      * If size() is even, then odd_part and even_part is of the same size.
-      * Otherwise, odd_part = even_part + 1
-      */
-    auto split_in_half() -> std::pair<ListNode*, ListNode*> {
-        ;
-    }
+struct SkipNode {
+    ListNode *node_ptr;
+    std::size_t index;
 };
+
+
+/**
+  * Returns (odd_part, even_part), which both != nullptr
+  * 
+  * If size() is even, then odd_part and even_part is of the same size.
+  * Otherwise, odd_part = even_part + 1
+  * 
+  * Internally, it utilizes the concept of skip list to calculate the middle point 
+  * quickly.
+  * 
+  * Best case O(1), Worst case O().
+  */
+auto split_in_half(ListNode *head) -> std::pair<ListNode*, ListNode*> {
+    std::size_t len = 0;
+    
+    // Every `diff` nodes, a SkipNode will be created
+    // They will be used to find the middle point
+    static constexpr const std::size_t init_diff = 10;
+    std::size_t diff = init_diff;
+    
+    std::array<SkipNode, init_diff * 2> skipNodes;
+    std::size_t index = 0;
+    
+    auto it = head;
+    do {
+        if (len % diff == 0)
+            skipNodes[(index++) % skipNode.size()] = SkipNode{it, len};
+            
+        // Increment
+        ++len;
+        it = it->next;
+    } while (it != nullptr);
+    
+    return {head, };
+}
 
 /**
  * Precondition: odd_part, even_part != nullptr
@@ -118,7 +121,7 @@ class Solution {
 public:
     void reorderList(ListNode* head) {
         if (head != nullptr && head->next != nullptr && head->next->next != nullptr) {
-            auto [odd_part, even_part] = Simple_SkipList{head}.split_in_half();
+            auto [odd_part, even_part] = split_in_half(head);
             return merge(odd_part, reverse(even_part));
         }
     }
