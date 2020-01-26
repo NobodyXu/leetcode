@@ -1,0 +1,29 @@
+-----------------------------------------------------------------
+Benchmark                       Time             CPU   Iterations
+-----------------------------------------------------------------
+BM_ctor/8                     184 ns          184 ns      3770000
+BM_ctor/16                    377 ns          377 ns      1861401
+BM_ctor/64                   2206 ns         2206 ns       317063
+BM_ctor/256                  9364 ns         9364 ns        75801
+BM_ctor/1024                42143 ns        42143 ns        16713
+BM_ctor/4096               178332 ns       178330 ns         3825
+BM_ctor/16384              875271 ns       875266 ns          803
+BM_ctor/65536             4735751 ns      4735646 ns          153
+BM_ctor/262144           22276777 ns     22276467 ns           29
+BM_ctor/1048576          81112643 ns     81111862 ns            7
+BM_ctor/4194304         401986698 ns    401979794 ns            2
+BM_ctor_BigO                94.71 N         94.71 N    
+BM_ctor_RMS                    12 %            12 %    
+BM_manual_move/8              164 ns          164 ns      4236307
+BM_manual_move/16             348 ns          348 ns      2017241
+BM_manual_move/64            2278 ns         2278 ns       304912
+BM_manual_move/256           9372 ns         9372 ns        73242
+BM_manual_move/1024         38108 ns        38108 ns        18510
+BM_manual_move/4096        155880 ns       155877 ns         4374
+BM_manual_move/16384       620267 ns       620254 ns         1075
+BM_manual_move/65536      2688421 ns      2688386 ns          258
+BM_manual_move/262144    14815488 ns     14814832 ns           52
+BM_manual_move/1048576   57928413 ns     57925466 ns           12
+BM_manual_move/4194304  257640840 ns    257633697 ns            3
+BM_manual_move_BigO         61.04 N         61.04 N    
+BM_manual_move_RMS              7 %             7 %    
