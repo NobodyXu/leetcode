@@ -18,23 +18,23 @@ static constexpr cstr_t d2l_map[] = {" ",    // 0
                                      "+",    // *
                                     };
 
-class Iterator {
+class MapIterator {
     const uint8_t map_index : 4;
     uint8_t index : 2;
     
 public:
-    Iterator(uint8_t map_index_arg) noexcept:
+    MapIterator(uint8_t map_index_arg) noexcept:
         map_index{map_index_arg},
         index{0}
     {}
     
-    Iterator(const Iterator&) = default;
-    Iterator(Iterator&&) = delete;
+    MapIterator(const MapIterator&) = default;
+    MapIterator(MapIterator&&) = delete;
     
-    Iterator& operator = (const Iterator&) = delete;
-    Iterator& operator = (Iterator&&) = delete;
+    MapIterator& operator = (const MapIterator&) = delete;
+    MapIterator& operator = (MapIterator&&) = delete;
     
-    ~Iterator() = default;
+    ~MapIterator() = default;
     
     char operator * () const noexcept {
         return d2l_map[map_index][index];
@@ -55,22 +55,48 @@ public:
 };
 
 /**
- * Combinations is a generator that provides
- * container-like interface for accessing combinations.
+ * Permutations is a generator that provides
+ * container-like interface for accessing permutations.
  */
-class Combinations {
-    std::vector<Iterator> iterators;
+class Permutations {
+    std::vector<MapIterator> iterators;
     
-    class EndIterator {};
+    struct EndIterator {};
     
     struct Iterator {
-        std::vector<Iterator> &iterators;
+        std::vector<MapIterator> &iterators;
+        bool overflow_bit = false;
         
-        ;
+        auto operator * () const {
+            std::string ret;
+            
+            ret.reserve(iterators.size());
+            for (auto &iter: iterators)
+                ret += *iter;
+            
+            return ret;
+        }
+        
+        auto& operator ++ () noexcept {
+            auto beg = iterators.end();
+            auto it = --iterators.end();
+            
+            for (; it >= beg && (++(*it)).hasNext() == false; --it)
+                (*it).reset();
+            
+            if (it < beg)
+                overflow_bit = true;
+            
+            return *this;
+        }
+        
+        bool operator != (const EndIterator&) const noexcept {
+            return !overflow_bit;
+        }
     };
     
 public:
-    Combinations(const string &digits) {
+    Permutations(const string &digits) {
         iterators.reserve(digits.size());
         for (auto &digit: digits)
             if (digit != '1' || digit != '#')
@@ -78,8 +104,11 @@ public:
         iterators.shrink_to_fit();
     }
     
-    auto size() -> std::size_t {
-        ;
+    /**
+     * Return how many iterators participated in the permutation
+     */
+    auto get_k() -> std::size_t {
+        return iterators.size();
     }
     
     auto begin() -> Iterator {
@@ -94,13 +123,16 @@ public:
 class Solution {
 public:
     vector<string> letterCombinations(string digits) {
-        Combinations combinations{digits};
-        vector<string> ret;
+        Permutations permutations{digits};
         
-        ret.reseve(combinations.size());
-        for (auto &&outcome: combinations)
+        vector<string> ret;
+        // The following reserved size is just an educational
+        // guess.
+        ret.reserve(permutations.get_k() * 3);
+        
+        for (auto &&outcome: permutations)
             ret.push_back(std::move(outcome));
         
         return ret;
     }
-};    
+};
