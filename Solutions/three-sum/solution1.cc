@@ -6,10 +6,6 @@
 
 using triplet = vector<int>;
 
-auto& sorted(vector<int> &nums) {
-    return nums;
-}
-
 /**
  * @Return x, y, z in ascending order as type triplet
  */
