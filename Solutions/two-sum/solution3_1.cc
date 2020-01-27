@@ -23,7 +23,7 @@ public:
             int x = *it;
             int y = target - x;
             
-            // **result >= y
+            // result == ref_vector.cend() || **result >= y
             auto result = std::lower_bound(ref_vector.cbegin(), ref_vector.cend(), y, [](const auto &it, const auto &y) noexcept {
                     return *it < y;
             });
