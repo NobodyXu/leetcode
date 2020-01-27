@@ -5,49 +5,45 @@
 #include <set>
 
 using triplet = vector<int>;
-using ref_vector_t = std::vector<typename triplet::const_iterator>;
 
-auto make_ref_vector(const vector<int> &nums) -> ref_vector_t {
-    ref_vector_t ret;
-    
-    ret.reserve(nums.size());
-    for (auto it = nums.begin(); it != nums.end(); ++it)
-        ret.push_back(it);
-    
-    std::sort(ret.begin(), ret.end(), [](auto &it1, auto &it2) noexcept {
-        return *it1 < *it2;
-    });
-
-    return ret;
+auto& sorted(vector<int> &nums) {
+    std::sort(nums.begin(), nums.end());
+    return nums;
 }
 
 /**
  * @Return x, y, z in ascending order as type triplet
  */
 auto sorted(int x, int y, int z) -> triplet {
-    auto [s1, s2] = std::minmax(x, y);
-    auto s3 = std::max(s2, z);
+    /*
+    triplet ret;
     
-    return {s1, s2, s3};
+    ret.reserve(3);
+    ret.push_back(x);
+    ret.push_back(y);
+    ret.push_back(z);
+    */
+    
+    auto [s2, s3] = std::minmax(x, y);
+    auto [s4, s5] = std::minmax(s3, z);
+    
+    auto [s0, s1] = std::minmax(s2, s4);
+    
+    return {s0, s1, s5};
 }
 
-auto threeSum_set(const ref_vector_t &ref_vector) -> std::set<triplet> {
+auto threeSum_set(const vector<int> &nums) -> std::set<triplet> {
     std::set<triplet> ret;
     
-    for (auto &cit1: ref_vector)
-        for (auto &cit2: ref_vector)
-            if (cit1 != cit2) {
-                int x = *cit1;
-                int y = *cit2;
-                int z = 0 - x - y;
+    for (auto &x: nums)
+        for (auto &y: nums)
+            if (&x != &y) {
+                int z = 0 - (x + y);
                 
-                auto ref_cit3 = std::lower_bound(ref_vector.begin(), ref_vector.end(), z, 
-                                                [](const auto &cit, const auto &z) noexcept {
-                    return *cit < z;
-                });
+                auto cit = std::lower_bound(nums.begin(), nums.end(), z);
                 
-                if (ref_cit3 != ref_vector.end() && *(*ref_cit3) == z && 
-                    *ref_cit3 != cit1 && *ref_cit3 != cit2)
+                if (cit != nums.end() && *cit == z && 
+                    &(*cit) != &x && &(*cit) != &y)
                     ret.insert(sorted(x, y, z));
             }
     
@@ -57,7 +53,7 @@ auto threeSum_set(const ref_vector_t &ref_vector) -> std::set<triplet> {
 class Solution {
 public:
     vector<vector<int>> threeSum(vector<int>& nums) {
-        auto set = threeSum_set(make_ref_vector(nums));
+        auto set = threeSum_set(sorted(nums));
         
         vector<triplet> ret;
         ret.reserve(set.size());
