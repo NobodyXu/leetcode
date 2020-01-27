@@ -21,8 +21,14 @@ auto make_ref_vector(const vector<int> &nums) -> ref_vector_t {
     return ret;
 }
 
-auto sorted(int x, int y, int z) ->triplet {
-    ;
+/**
+ * @Return x, y, z in ascending order as type triplet
+ */
+auto sorted(int x, int y, int z) -> triplet {
+    auto [s1, s2] = std::minmax(x, y);
+    auto s3 = std::max(s2, z);
+    
+    return {s1, s2, s3};
 }
 
 auto threeSum(const ref_vector_t &ref_vector) -> std::set<triplet> {
@@ -55,6 +61,7 @@ public:
         
         vector<triplet> ret;
         ret.reserve(set.size());
+        
         for (auto &each: set)
             ret.push_back(std::move(each));
         
