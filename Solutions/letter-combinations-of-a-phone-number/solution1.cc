@@ -1,13 +1,12 @@
 #include <cstdint>
+#include <cmath>
 #include <utility>
 
 #include <vector>
 
 using cstr_t = const char*;
 
-static constexpr cstr_t d2l_map[] = {" ",    // 0
-                                     "",     // 1
-                                     "abc",  // 2
+static constexpr cstr_t d2l_map[] = {"abc",  // 2
                                      "def",  // 3
                                      "ghi",  // 4
                                      "jkl",  // 5
@@ -15,12 +14,11 @@ static constexpr cstr_t d2l_map[] = {" ",    // 0
                                      "pqrs", // 7
                                      "tuv",  // 8
                                      "wxyz", // 9
-                                     "+",    // *
                                     };
 
 class MapIterator {
     const uint8_t map_index : 4;
-    uint8_t index : 2;
+    uint8_t index : 3;
     
 public:
     MapIterator(uint8_t map_index_arg) noexcept:
@@ -63,22 +61,28 @@ class Permutations {
     
     struct EndIterator {};
     
-    struct Iterator {
+    class Iterator {
         std::vector<MapIterator> &iterators;
-        bool overflow_bit = false;
+        bool overflow_bit;
+        
+    public:
+        Iterator(std::vector<MapIterator> &iters) noexcept:
+            iterators{iters},
+            overflow_bit{iters.empty() ? true : false}
+        {}
         
         auto operator * () const {
             std::string ret;
             
             ret.reserve(iterators.size());
-            for (auto &iter: iterators)
+            for (const auto &iter: iterators)
                 ret += *iter;
             
             return ret;
         }
         
         auto& operator ++ () noexcept {
-            auto beg = iterators.end();
+            auto beg = iterators.begin();
             auto it = --iterators.end();
             
             for (; it >= beg && (++(*it)).hasNext() == false; --it)
@@ -99,9 +103,7 @@ public:
     Permutations(const string &digits) {
         iterators.reserve(digits.size());
         for (auto &digit: digits)
-            if (digit != '1' || digit != '#')
-                iterators.emplace_back(digit != '*' ? digit - '0' : 10);
-        iterators.shrink_to_fit();
+            iterators.emplace_back(digit - '2');
     }
     
     /**
@@ -128,7 +130,8 @@ public:
         vector<string> ret;
         // The following reserved size is just an educational
         // guess.
-        ret.reserve(permutations.get_k() * 3);
+        auto guessed_size = std::size_t{std::pow(3, permutations.get_k())};
+        ret.reserve(guessed_size);
         
         for (auto &&outcome: permutations)
             ret.push_back(std::move(outcome));
