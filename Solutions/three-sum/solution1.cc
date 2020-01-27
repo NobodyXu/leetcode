@@ -7,7 +7,6 @@
 using triplet = vector<int>;
 
 auto& sorted(vector<int> &nums) {
-    std::sort(nums.begin(), nums.end());
     return nums;
 }
 
@@ -54,7 +53,8 @@ auto threeSum_set(const vector<int> &nums) -> std::set<triplet> {
 class Solution {
 public:
     vector<vector<int>> threeSum(vector<int>& nums) {
-        auto set = threeSum_set(sorted(nums));
+        std::sort(nums.begin(), nums.end());
+        auto set = threeSum_set(nums);
         
         vector<triplet> ret;
         ret.reserve(set.size());
