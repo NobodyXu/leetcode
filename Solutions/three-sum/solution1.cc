@@ -35,17 +35,18 @@ auto sorted(int x, int y, int z) -> triplet {
 auto threeSum_set(const vector<int> &nums) -> std::set<triplet> {
     std::set<triplet> ret;
     
-    for (auto &x: nums)
-        for (auto &y: nums)
-            if (&x != &y) {
-                int z = 0 - (x + y);
+    for (auto cit1 = nums.begin(); cit1 != nums.end(); ++cit1)
+        for (auto cit2 = cit1; ++cit2 != nums.end(); ) {
+            int x = *cit1;
+            int y = *cit2;
+            int z = 0 - (x + y);
                 
-                auto cit = std::lower_bound(nums.begin(), nums.end(), z);
+            auto cit3 = std::lower_bound(nums.begin(), nums.end(), z);
                 
-                if (cit != nums.end() && *cit == z && 
-                    &(*cit) != &x && &(*cit) != &y)
-                    ret.insert(sorted(x, y, z));
-            }
+            if (cit3 != nums.end() && *cit3 == z && 
+                cit3 != cit1 && cit3 != cit2)
+                ret.insert(sorted(x, y, z));
+        }
     
     return ret;
 }
