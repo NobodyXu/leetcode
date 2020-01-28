@@ -53,10 +53,10 @@ public:
 };
 
 /**
- * Permutations is a generator that provides
+ * Combinations is a generator that provides
  * container-like interface for accessing permutations.
  */
-class Permutations {
+class Combinations {
     std::vector<MapIterator> iterators;
     
     struct EndIterator {};
@@ -100,7 +100,7 @@ class Permutations {
     };
     
 public:
-    Permutations(const string &digits) {
+    Combinations(const string &digits) {
         iterators.reserve(digits.size());
         for (auto &digit: digits)
             iterators.emplace_back(digit - '2');
@@ -125,15 +125,15 @@ public:
 class Solution {
 public:
     vector<string> letterCombinations(string digits) {
-        Permutations permutations{digits};
+        Combinations combinations{digits};
         
         vector<string> ret;
         // The following reserved size is just an educational
         // guess.
-        auto guessed_size = std::size_t{std::pow(3, permutations.get_k())};
+        auto guessed_size = std::size_t{std::pow(3, combinations.get_k())};
         ret.reserve(guessed_size);
         
-        for (auto &&outcome: permutations)
+        for (auto &&outcome: combinations)
             ret.push_back(std::move(outcome));
         
         return ret;
