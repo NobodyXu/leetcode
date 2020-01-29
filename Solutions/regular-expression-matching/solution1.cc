@@ -6,13 +6,12 @@
 template <class String_view, 
           class size_type = typename String_view::size_type, 
           class CharT     = typename String_view::value_type>
-auto count(String_view str, size_type index, CharT ch) noexcept -> size_type {
-    auto result = str.find_first_not_of(ch, index);
-    
-    if (result == String_view::npos)
-        return 0;
-    else
-        return result - index;
+auto count(String_view str, size_type start, CharT ch) noexcept -> size_type {
+    auto i = start;
+    while (i != str.size() && str[i] == ch)
+        ++i;
+        
+    return i - start;
 }
 
 class Regex {
@@ -23,10 +22,10 @@ class Regex {
     string_view pat;
     
     /**
-     * Precondition: index <= pat.size()
+     * Precondition: index < pat.size()
      */
     bool is_wildcard(size_type index) const noexcept {
-        return index != pat.size() && pat[index] == '*';
+        return index + 1 != pat.size() && pat[index + 1] == '*';
     }
     
     /**
@@ -51,7 +50,7 @@ class Regex {
             auto next_wildcard = pat.find_first_of('*', start);
             
             if (next_wildcard == string_view::npos)
-                return {next_wildcard, 0};
+                return {start, pat.size() - start};
             
             if (next_wildcard - start != 1)
                 return {start, next_wildcard - 1 - start};
@@ -61,6 +60,13 @@ class Regex {
             if (start == pat.size())
                 return {string_view::npos, 0};
         }
+    }
+    
+    auto find_next_valid_pattern(CharT str_ch, size_type pat_index) const noexcept -> size_type {
+        while (pat_index != pat.size() && is_wildcard(pat_index) && pat[pat_index] != str_ch)
+            pat_index += 2;
+        
+        return pat_index;
     }
     
 public:
@@ -86,7 +92,7 @@ public:
                     return false;
                     
                 case 3:
-                    if (is_wildcard(pat_index + 1)) {
+                    if (is_wildcard(pat_index)) {
                         if (pat[pat_index] == '.') {
                             if (pat_index + 2 == pat.size())
                                 return true;
@@ -106,14 +112,30 @@ public:
                             str_index = last_occur_index + first_non_wildcard_len;
                             pat_index = first_non_wildcard_start + first_non_wildcard_len;
                         } else {
-                            auto matched_chs = count(str, str_index,     pat[pat_index]);
-                            auto min_match   = count(pat, pat_index + 2, pat[pat_index]);
-                                        
-                            if (matched_chs < min_match)
-                                return false;
-                        
+                            auto wildcard_ch = pat[pat_index];
+                            
+                            auto matched_chs = count(str, str_index, wildcard_ch);
                             str_index += matched_chs;
-                            pat_index += 2 + min_match;
+                            pat_index += 2;
+                            
+                            if (str_index != str.size()) {
+                                auto next_valid_pat = find_next_valid_pattern(str[str_index], pat_index);
+                                
+                                if (next_valid_pat == pat.size())
+                            
+                                auto [first_non_wildcard_start, _] = find_first_non_wildcard(pat_index + 2);
+                                auto min_match = count(pat, first_non_wildcard_start, pat[pat_index]);
+                                        
+                                if (matched_chs < min_match)
+                                    return false;
+                        
+                                str_index += matched_chs;
+                            
+                                if (min_match == 0)
+                                    pat_index += 2;
+                                else
+                                    pat_index = first_non_wildcard_start + min_match;
+                            }
                         }
                     } else if (str[str_index] == pat[pat_index] || pat[pat_index] == '.') {
                         ++str_index;
