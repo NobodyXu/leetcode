@@ -1,11 +1,12 @@
 #include <cstdint>
 #include <iterator>
+#include <utility>
 #include <string_view>
 
 template <class String_view, 
           class size_type = typename String_view::size_type, 
           class CharT     = typename String_view::value_type>
-auto count(String_view str, size_type index, CharT ch) noexcept {
+auto count(String_view str, size_type index, CharT ch) noexcept -> size_type {
     auto result = str.find_first_not_of(ch, index);
     
     if (result == String_view::npos)
@@ -42,6 +43,26 @@ class Regex {
         return true;
     }
     
+    /**
+     * start < pat.size()
+     */
+    auto find_first_non_wildcard(size_type start) const noexcept -> std::pair<size_type, size_type> {
+        while (true) {
+            auto next_wildcard = pat.find_first_of('*', start);
+            
+            if (next_wildcard == string_view::npos)
+                return {next_wildcard, 0};
+            
+            if (next_wildcard - start != 1)
+                return {start, next_wildcard - 1 - start};
+            
+            start = next_wildcard + 1;
+            
+            if (start == pat.size())
+                return {string_view::npos, 0};
+        }
+    }
+    
 public:
     Regex(string_view p) noexcept:
         pat{p}
@@ -70,7 +91,20 @@ public:
                             if (pat_index + 2 == pat.size())
                                 return true;
                             
-                            ;
+                            auto [first_non_wildcard_start, first_non_wildcard_len] = find_first_non_wildcard(pat_index + 2);
+                            
+                            if (first_non_wildcard_start == string_view::npos)
+                                return true;
+                            
+                            auto first_non_wildcard_pat = pat.substr(first_non_wildcard_start, first_non_wildcard_len);
+                            auto last_occur_index = str.rfind(first_non_wildcard_pat, str_index);
+                            
+                            if (last_occur_index == string_view::npos)
+                                return false;
+                                
+                            // Increment
+                            str_index = last_occur_index + first_non_wildcard_len;
+                            pat_index = first_non_wildcard_start + first_non_wildcard_len;
                         } else {
                             auto matched_chs = count(str, str_index,     pat[pat_index]);
                             auto min_match   = count(pat, pat_index + 2, pat[pat_index]);
