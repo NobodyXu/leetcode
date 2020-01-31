@@ -27,8 +27,8 @@ void takes_subset_impl(PowerSet &powerSet, const vector<int> &nums, size_type i)
     std::vector<const_Iterator> cits;
     cits.reserve(i);
     cits.push_back(nums.begin());
-    
-    do {
+        
+    while (true) {
         while (cits.size() < i)
             cits.push_back(cits.back() + 1);
         
@@ -43,12 +43,26 @@ void takes_subset_impl(PowerSet &powerSet, const vector<int> &nums, size_type i)
         } while (++cits.back() != nums.end());
         
         // Increment
-        size_type len = 1;
+        size_type len = 0;
         
         do {
             cits.pop_back();
-        } while (nums.end() - (++cits.back()) < len++);
-    } while (nums.end() - cits.front() >= i);
+            
+            if (cits.empty())
+                return;
+            
+            ++cits.back();
+            
+            auto diff11 = std::distance(cits.back(), nums.end());
+            auto diff12 = std::distance(nums.begin(), cits.back());
+            
+            auto diff21 = std::distance(cits.front(), nums.end());
+            auto diff22 = std::distance(nums.begin(), cits.front());
+            
+            auto _ = diff11;
+            
+        } while (std::distance(cits.back(), nums.end()) <= ++len);
+    }
 }
 
 /**
@@ -63,8 +77,6 @@ void takes_subset(PowerSet &powerSet, const vector<int> &nums, size_type i) {
     else
         return takes_subset_impl(powerSet, nums, i);
 }
-    
-
 
 class Solution {
 public:
