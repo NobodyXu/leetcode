@@ -15,10 +15,10 @@ auto count(String_view str, size_type start, CharT ch) noexcept -> size_type {
 }
 
 class Regex {
-    using string_view = std::basic_string_view<typename string::value_type,
-                                               typename string::traits_type>;
+    using CharT = typename string::value_type;
+    using string_view = std::basic_string_view<CharT, typename string::traits_type>;
     using size_type = typename string_view::size_type;
-        
+    
     string_view pat;
     
     /**
@@ -37,7 +37,7 @@ class Regex {
                 return false;
             
             start += 2;
-        } while (start != pat.size());
+        } while (start < pat.size());
         
         return true;
     }
@@ -121,20 +121,23 @@ public:
                             if (str_index != str.size()) {
                                 auto next_valid_pat = find_next_valid_pattern(str[str_index], pat_index);
                                 
-                                if (next_valid_pat == pat.size())
-                            
-                                auto [first_non_wildcard_start, _] = find_first_non_wildcard(pat_index + 2);
-                                auto min_match = count(pat, first_non_wildcard_start, pat[pat_index]);
-                                        
-                                if (matched_chs < min_match)
-                                    return false;
-                        
-                                str_index += matched_chs;
-                            
-                                if (min_match == 0)
-                                    pat_index += 2;
-                                else
-                                    pat_index = first_non_wildcard_start + min_match;
+                                if (next_valid_pat == pat.size()) {
+                                    if (str_index == str.size())
+                                        return true;
+                                    else
+                                        return false;
+                                } else if (is_wildcard(next_valid_pat)) {
+                                    pat_index = next_valid_pat;
+                                } else {
+                                    auto wildcard_chs = count(pat, pat_index, wildcard_ch]);
+                                    
+                                    if (wildcard_chs != 0) {
+                                        if (wildcard_chs > matched_chs)
+                                            return false;
+                                            
+                                        pat_index = next_valid_pat + matched_chs;
+                                    }
+                                }
                             }
                         }
                     } else if (str[str_index] == pat[pat_index] || pat[pat_index] == '.') {
