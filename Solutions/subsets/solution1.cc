@@ -51,16 +51,7 @@ void takes_subset_impl(PowerSet &powerSet, const vector<int> &nums, size_type i)
             if (cits.empty())
                 return;
             
-            ++cits.back();
-            
-            auto diff11 = std::distance(cits.back(), nums.end());
-            auto diff12 = std::distance(nums.begin(), cits.back());
-            
-            auto diff21 = std::distance(cits.front(), nums.end());
-            auto diff22 = std::distance(nums.begin(), cits.front());
-            
-            auto _ = diff11;
-            
+            ++cits.back();            
         } while (std::distance(cits.back(), nums.end()) <= ++len);
     }
 }
