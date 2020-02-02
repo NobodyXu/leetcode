@@ -1,4 +1,4 @@
-#include <iterator>
+#include <utility>
 #include <algorithm>
 
 auto make_leftParenthesis(int n) -> string {
@@ -12,17 +12,15 @@ auto make_leftParenthesis(int n) -> string {
 }
 
 template <class It, class size_type>
-auto append_rightParenthesis(It beg, It end, size_type pos) -> string {
-    string ret;
-    ret.reserve(std::distance(end, beg) + 1);
+void append_rightParenthesis(string &ret, It beg, It end, size_type pos) {
+    int left_cnt  = 0;
+    int right_cnt = 0;
     
     auto back_inserter = std::back_inserter(ret);
     
     std::copy_n(beg, pos, back_inserter);
     ret.push_back(')');
     std::copy(std::next(beg, pos), end, back_inserter);
-    
-    return ret;
 }
 
 vector<string> generateParenthesis_impl(int n) {
@@ -35,14 +33,27 @@ vector<string> generateParenthesis_impl(int n) {
     
     // The process below will requires ret to be size of (2n, n)
     // But the actually algoritm will just be (2n, n) / (n + 1)
-    // It must have dups.
+    // It must have invalid pairs according to the theory.
     do {
         ret.reserve(ret.size() * (ret.size() + 1));
         
-        for (auto &each: ret) {
-            do {
+        for (auto it = ret.begin(), end = ret.end(); it != end; ) {
+            string result;
+            const auto &str = *it;
+            
+            for (size_type i = 0; i != str.size(); ++i) {
+                result.reserve(str.size() + 1);
+                
+                append_rightParenthesis(result, str.begin(), str.end(), 0);
+                
+                if (result.size() != 0)
+                    ret.push_back(std::move(result));
+            }
+            
+            // Pop out the current
+            if (end < ret.end()) {
                 ;
-            } while ()
+            }
         }
     } while (ret.front().size() != (n << 1));
     
