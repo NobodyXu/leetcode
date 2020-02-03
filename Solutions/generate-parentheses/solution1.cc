@@ -11,16 +11,46 @@ auto make_leftParenthesis(int n) -> string {
     return s;
 }
 
+/**
+ * If the check fails when coping, set string to empty.
+ */
+template <class It>
+void copy_and_check(It beg, It end, string &ret, int &left_cnt, int &right_cnt) {
+    for (It it = beg; it != end; ++it) {
+        ret.push_back(*beg);
+        
+        if (*beg == ')') {
+            if (++right_cnt > left_cnt) {
+                ret.resize(0);
+                return;
+            }
+        } else
+            ++left_cnt;
+    }
+}
+
+/**
+ * If the result is invalid ret will be set to empty
+ */
 template <class It, class size_type>
 void append_rightParenthesis(string &ret, It beg, It end, size_type pos) {
     int left_cnt  = 0;
     int right_cnt = 0;
+        
+    // Since there is no change to [beg, beg + pos), no check is required
+    // But counting of left and right parenthesis is necessary.
+    copy_and_check(beg, beg + pos, ret, left_cnt, right_cnt);
+    if (ret.empty())
+        return;
     
-    auto back_inserter = std::back_inserter(ret);
-    
-    std::copy_n(beg, pos, back_inserter);
     ret.push_back(')');
-    std::copy(std::next(beg, pos), end, back_inserter);
+    ++right_cnt;
+    if (right_cnt > left_cnt) {
+        ret.resize(0);
+        return;
+    }
+    
+    copy_and_check(std::next(beg, pos), end, ret, left_cnt, right_cnt);
 }
 
 vector<string> generateParenthesis_impl(int n) {
