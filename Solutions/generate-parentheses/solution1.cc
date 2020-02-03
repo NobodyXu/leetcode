@@ -1,16 +1,6 @@
 #include <utility>
 #include <algorithm>
 
-auto make_leftParenthesis(int n) -> string {
-    string s;
-    s.reserve(n);
-    
-    for (int i = 0; i != n; ++n)
-        s.push_back('(');
-    
-    return s;
-}
-
 /**
  * If the check fails when coping, set string to empty.
  */
@@ -59,19 +49,22 @@ vector<string> generateParenthesis_impl(int n) {
     vector<string> ret;
     ret.reserve(10);
     
-    ret.push_back(make_leftParenthesis(n));
+    ret.push_back(string(n, '('));
     
     // The process below will requires ret to be size of (2n, n)
     // But the actually algoritm will just be (2n, n) / (n + 1)
     // It must have invalid pairs according to the theory.
     do {
+        // Reserve enough space so that no iterator invalidation 
+        // will happen during the inner loop.
         ret.reserve(ret.size() * (ret.size() + 1));
         
-        for (auto it = ret.begin(), end = ret.end(); it != end; ) {
+        auto old_len = ret.size();
+        for (auto it = ret.begin(), end = ret.end(); ; ) {
             string result;
             const auto &str = *it;
             
-            for (size_type i = 0; i != str.size(); ++i) {
+            for (size_type i = 1; i <= str.size(); ++i) {
                 result.reserve(str.size() + 1);
                 
                 append_rightParenthesis(result, str.begin(), str.end(), 0);
@@ -81,11 +74,16 @@ vector<string> generateParenthesis_impl(int n) {
             }
             
             // Pop out the current
-            if (end < ret.end()) {
-                ;
-            }
+            auto len = ret.size();
+            
+            std::iter_swap(it, std::prev(ret.end()));
+            ret.pop_back();
+            
+            if (old_len < len)
+                if (++it == end)
+                    break;
         }
-    } while (ret.front().size() != (n << 1));
+    } while (ret.front().size() != (2 * n));
     
     return ret;
 }
