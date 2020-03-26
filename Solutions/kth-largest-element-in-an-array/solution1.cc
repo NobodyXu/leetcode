@@ -79,6 +79,9 @@ public:
     {
         ArrayHeap heap{nums.begin(), static_cast<std::size_t>(k), std::less{}};
         
+        // heap.top() < *it is enough when there are elements thats == others
+        // These elements will simply pushs out elements smaller than themselves, 
+        // until heap.top() == themselves.
         for (auto it = nums.begin() + k; it != nums.end(); ++it)
             if (heap.top() < *it)
                 heap.replace_top(*it);
