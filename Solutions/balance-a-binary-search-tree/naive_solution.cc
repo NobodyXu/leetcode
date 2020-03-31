@@ -1,7 +1,3 @@
-/**
- * Input:  [1,null,2,null,3,null,4,null,null]
- * Output: [2,1,3]
- */
 // Naive solution
 #include <stack>
 #include <algorithm>
@@ -86,8 +82,8 @@ auto* sorted_to_balanced_BST(const std::vector<TreeNode*> &v) {
     for (auto i = 1; i < (half * 2); i += 4) {
         v[i - 1]->left = nullptr;
         v[i - 1]->right = nullptr;
-        v[i + 1]->left = nullptr;
-        v[i + 1]->right = nullptr;
+        //v[i + 1]->left = nullptr;
+        //v[i + 1]->right = nullptr;
     }
     
     return v[half];
