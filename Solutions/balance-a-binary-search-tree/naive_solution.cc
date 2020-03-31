@@ -58,25 +58,28 @@ auto* sorted_to_balanced_BST(const std::vector<TreeNode*> &v) {
     auto start = diff;    
     const auto size = v.size();
     const auto half = (size - 1) / 2;
-        
-    // Build the balanced BST from ground up.
-    for (; diff <= half;) {
-        for (auto i = start; i < (half * 2); i += pdiff * 2) {
-            v[i]->left  = v[i - diff];
-            v[i]->right = v[i + diff];
-        }
-
-        diff = pdiff;
-        pdiff <<= 1;
-        start += diff;
-    }
     
-    // Last but not least, set up leaf node
+    
+    // First, set up leaf node
     for (auto i = 1; i < (half * 2); i += 4) {
         v[i - 1]->left = nullptr;
         v[i - 1]->right = nullptr;
         v[i + 1]->left = nullptr;
         v[i + 1]->right = nullptr;
+    }
+        
+    // Build the balanced BST from ground up.
+    for (; diff <= half;) {
+        for (auto i = start; i < (half * 2); i += pdiff * 2) {
+            v[i]->left  = v[i - diff];
+            
+            if (i + diff < half * 2)
+                v[i]->right = v[i + diff];
+        }
+
+        diff = pdiff;
+        pdiff <<= 1;
+        start += diff;
     }
     
     if (!is_even(size)) {
