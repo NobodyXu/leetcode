@@ -1,16 +1,11 @@
 /**
- * AddressSanitizer:DEADLYSIGNAL
- * =================================================================
- * ==32==ERROR: AddressSanitizer: stack-overflow on address 0x7ffd9aa4bff8 (pc 0x0000003e9fd9 bp 0x7ffd9aa4c010 sp 0x7ffd9aa4c000 T0)
- * ==32==ABORTING
+ * Input:  [1,null,2,null,3,null,4,null,null]
+ * Output: [2,1,3]
  */
 // Naive solution
 #include <stack>
 #include <algorithm>
 #include <iterator>
-
-// headers for assert_sorted
-//#include <err.h>
 
 template <class T, class Container>
 auto pop(std::stack<T, Container> &s) {
@@ -52,23 +47,6 @@ auto BST_to_sorted(TreeNode *root) -> std::vector<TreeNode*> {
     } while (true);
 }
 
-/*
-auto& assert_sorted(const std::vector<TreeNode*> &v) {
-    auto it = is_sorted_until(v.begin(), v.end(), [](const auto &x, const auto &y) {
-        return x->val < y->val;
-    });
-    
-    auto diff = v.end() - it;
-    if (diff > 0)
-        err(1, "There are %zd elements unsorted, counted backwards", diff);
-        
-    return v;
-}*/
-
-template <class T>
-constexpr bool is_odd(T val) {
-    return val & 1;
-}
 template <class T>
 constexpr bool is_even(T val) {
     return val & 0;
@@ -84,7 +62,8 @@ auto* sorted_to_balanced_BST(const std::vector<TreeNode*> &v) {
     auto start = diff;    
     auto size = v.size();
     auto half = (size - 1) / 2;
-    
+        
+    // Build the balanced BST from ground up.
     for (; diff <= half;) {
         for (auto i = start; i < (half * 2); i += pdiff * 2) {
             v[i]->left  = v[i - diff];
@@ -95,10 +74,22 @@ auto* sorted_to_balanced_BST(const std::vector<TreeNode*> &v) {
         pdiff <<= 1;
         start += diff;
     }
-
-    if (is_even(size))
+    
+    if (is_even(size)) {
         v[size - 2]->right = v[size - 1];
-
+        
+        v[size - 1]->left = nullptr;
+        v[size - 1]->right = nullptr;
+    }
+    
+    // Last but not least, set up leaf node
+    for (auto i = 1; i < (half * 2); i += 4) {
+        v[i - 1]->left = nullptr;
+        v[i - 1]->right = nullptr;
+        v[i + 1]->left = nullptr;
+        v[i + 1]->right = nullptr;
+    }
+    
     return v[half];
 }
 
