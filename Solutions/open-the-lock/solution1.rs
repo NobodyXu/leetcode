@@ -173,11 +173,14 @@ mod basics {
     }
     
     /// First field represents step_cnt, second represents heuristic
+    /// Since there are at most 10 * 10 * 10 * 10 possible states, the maximum
+    /// step_cnt must also be 10000.
+    /// u16 is more than enough for 10000.
     #[derive(Copy, Clone, Debug)]
-    pub struct HeapEntry(pub u32, pub u8, pub State);
+    pub struct HeapEntry(pub u16, pub u8, pub State);
     impl HeapEntry {
-        fn get_cost(self) -> u64 {
-            self.0 as u64 + self.1 as u64
+        fn get_cost(self) -> u16 {
+            self.0 + self.1 as u16
         }
     }
     impl PartialEq for HeapEntry {
@@ -211,7 +214,7 @@ impl Solution {
         let mut expander = Expander::new(deadends);
         let mut heap = BinaryHeap::with_capacity(100);
         
-        let mut step_cnt: u32 = 0;
+        let mut step_cnt: u16 = 0;
         loop {
             if state == target {
                 break step_cnt as i32;
