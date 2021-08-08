@@ -12,10 +12,19 @@ fn main() {
             }
         };
     }
-    let step = Solution::open_lock(
-        deadends!["0201","0101","0102","1212","2002"],
-        "0202".to_string()
-    );
 
-    println!("step = {}", step);
+    let run = |deadends, answer: &'static str| {
+        print!("deadends = {:?}, answer = {}, ", deadends, answer);
+        let step = Solution::open_lock(deadends, answer.to_string());
+        println!("step = {}", step);
+    };
+
+    run(
+        deadends!["0201","0101","0102","1212","2002"],
+        "0202"
+    );
+    run(
+        deadends!["2022","0230","1330","2033","2113","2113","2102","3013","0120","3021"],
+        "3102"
+    );
 }

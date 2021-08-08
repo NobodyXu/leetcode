@@ -3,7 +3,6 @@ include!("common.rs");
 mod basics {
     use std::convert::{From, TryInto};
     use std::cmp::{Ord, PartialOrd, Eq, PartialEq, Ordering, min};
-    use std::collections::hash_map::HashMap;
 
     #[derive(Copy, Clone, Debug)]
     struct Wheel(u8);
@@ -47,15 +46,23 @@ mod basics {
             
             self
         }
-        
+
         fn to_array(self) -> [u8; 4] {
             let mut arr = [0_u8; 4];
-            
+
             for (bits, entry) in (0..16).step_by(BITS as usize).zip(&mut arr) {
                 *entry = ((self.0 >> bits) & MASK) as u8
             }
-            
+
             arr
+        }
+
+        fn to_decimal(self) -> u16 {
+            self.to_array()
+                .iter()
+                .zip((1..10000).step_by(10))
+                .map(|(entry, ratio)| (*entry as u16) * (ratio as u16))
+                .sum()
         }
     }
     impl From<String> for State {
@@ -106,38 +113,64 @@ mod basics {
             .sum()
     }
 
-    #[derive(Debug, Default)]
+    const MAX_SIZE: usize = 10 * 10 * 10 * 10;
+    const BITSET_SIZE: usize = MAX_SIZE / 8 + (MAX_SIZE % 8) as usize;
+
+    /// * `SIZE` - number of bytes required for your array
+    struct Bitset {
+        array: [u8; BITSET_SIZE],
+    }
+    impl Default for Bitset {
+        fn default() -> Self {
+            Self {
+                array: [0; BITSET_SIZE],
+            }
+        }
+    }
+    impl Bitset {
+        #[inline]
+        fn set(&mut self, index: usize) {
+            let byte = &mut self.array[index / 8];
+            *byte |= 1 << (index % 8);
+        }
+
+        #[inline]
+        fn get(&self, index: usize) -> bool {
+            let byte = self.array[index / 8];
+            ((byte >> (index % 8)) & 1) != 0
+        }
+    }
+
+    #[derive(Default)]
     pub struct Expander {
         /// the deadends and the expanded
-        excluded: HashMap<State, ()>,
+        excluded: Bitset,
     }
     impl Expander {
         pub fn new(v: Vec<String>) -> Self {
             let mut expander: Self = Default::default();
             let deadends = &mut expander.excluded;
-            
-            deadends.reserve(v.len() + 20);
-            
+
             for s in v {
-                deadends.insert(s.into(), ());
+                let state: State = s.into();
+                deadends.set(state.to_decimal() as usize);
             }
-            
+
             expander
         }
-    }
-    impl Expander {
+
         /// Return (# num of states returned, states, as a fixed-size array)
         fn do_expand(&self, state: State) -> (usize, [State; 8]) {
             let mut cnt: usize = 0;
             let mut states = [<State as Default>::default(); 8];
 
-            // rotate upwards and downwards separately in different loops to help vectorization and
-            // loop unroll
+            // rotate upwards and downwards separately in different loops to help
+            // vectorization and loop unroll
             let it1 = WHEELS.iter().map(|wheel| state.rotate_up(*wheel));
             let it2 = WHEELS.iter().map(|wheel| state.rotate_down(*wheel));
-            
+
             it1.chain(it2).for_each(|new_state| {
-                if let None = self.excluded.get(&new_state) {
+                if !self.excluded.get(new_state.to_decimal() as usize) {
                     states[cnt] = new_state;
                     cnt += 1;
                 }
@@ -147,19 +180,14 @@ mod basics {
         }
 
         /// Return (# num of states returned, states, as a fixed-size array)
-        pub fn expand(&mut self, state: State) -> (usize, [State; 8]) {                        
-            if let Some(_) = self.excluded.get(&state) {
+        pub fn expand(&mut self, state: State) -> (usize, [State; 8]) {
+            let index = state.to_decimal() as usize;
+            if self.excluded.get(index) {
                 return Default::default();
             }
 
             let ret = self.do_expand(state);
-
-            // `insert` after `get` so that the lookup can be faster due to smaller table.
-            //
-            // Also, insertion involves some extremely complicated logic, which might get in the way of the
-            // OOE.
-            self.excluded.insert(state, ());
-            
+            self.excluded.set(index);
             ret
         }
 
@@ -206,7 +234,8 @@ impl Solution {
     pub fn open_lock(deadends: Vec<String>, target: String) -> i32 {
         use basics::*;
         use std::collections::binary_heap::BinaryHeap;
-        use std::cmp::Reverse; // Since BinaryHeap by default returns the biggest, Reverse is required
+        // Since BinaryHeap by default returns the biggest, Reverse is required
+        use std::cmp::Reverse;
 
         let target: State = target.into();
         
