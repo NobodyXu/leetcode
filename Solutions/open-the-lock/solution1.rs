@@ -188,12 +188,14 @@ mod basics {
             let it1 = WHEELS.iter().map(|wheel| state.rotate_up(*wheel));
             let it2 = WHEELS.iter().map(|wheel| state.rotate_down(*wheel));
 
-            it1.chain(it2).for_each(|new_state| {
-                if !self.excluded.get(new_state.to_decimal() as usize) {
-                    states[cnt] = new_state;
-                    cnt += 1;
-                }
-            });
+            it1.chain(it2)
+                .map(|new_state| (new_state, new_state.to_decimal()))
+                .for_each(|(new_state, index)| {
+                    if !self.excluded.get(index as usize) {
+                        states[cnt] = new_state;
+                        cnt += 1;
+                    }
+                });
 
             (cnt, states)
         }
