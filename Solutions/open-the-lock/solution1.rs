@@ -212,12 +212,9 @@ mod basics {
         }
 
         /// This function should be called on the states returned by expand
-        ///
-        /// Returns None if state != target and state has no child (hence it will never reach the target).
-        /// Returns Some(0) if state == target, otherwise Some(positive number).
         #[inline(always)]
-        pub fn heuristic(&self, state: State, target: State) -> Option<u8> {
-            return Some(distance(state, target));
+        pub fn heuristic(&self, state: State, target: State) -> u8 {
+            distance(state, target)
         }
     }
     
@@ -278,10 +275,11 @@ impl Solution {
             
             let (sz, arr) = expander.expand(state);
             (&arr[0..sz]).iter()
-                .for_each(|child_state| {
-                    if let Some(h) = expander.heuristic(*child_state, target) {
-                        heap.push(Reverse(HeapEntry(step_cnt, h, *child_state)));
-                    }
+                .map(|child_state| {
+                    (expander.heuristic(*child_state, target), *child_state)
+                })
+                .for_each(|(h, child_state)| {
+                    heap.push(Reverse(HeapEntry(step_cnt, h, child_state)));
                 });
 
             match heap.pop() {
