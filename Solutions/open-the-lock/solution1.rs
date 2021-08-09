@@ -3,6 +3,7 @@ include!("common.rs");
 mod basics {
     use std::convert::{From, TryInto};
     use std::cmp::{Ord, PartialOrd, Eq, PartialEq, Ordering, min};
+    use std::fmt::{Debug, Formatter, Error};
 
     #[derive(Copy, Clone, Debug)]
     struct Wheel(u8);
@@ -13,7 +14,7 @@ mod basics {
         Wheel(3),
     ];
 
-    #[derive(Copy, Clone, Debug, Default, Eq, PartialEq, Hash)]
+    #[derive(Copy, Clone, Default, Eq, PartialEq, Hash)]
     pub struct State (u16);
     const BITS: u8 = 4; // number of bits for one wheel
     const MASK: u16 = (1 << BITS) - 1;
@@ -60,9 +61,14 @@ mod basics {
         fn to_decimal(self) -> u16 {
             self.to_array()
                 .iter()
-                .zip((1..10000).step_by(10))
-                .map(|(entry, ratio)| (*entry as u16) * (ratio as u16))
+                .zip(&[1_u16, 10_u16, 100_u16, 1000_u16])
+                .map(|(entry, ratio)| (*entry as u16) * (*ratio as u16))
                 .sum()
+        }
+    }
+    impl Debug for State {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+            f.write_fmt(format_args!("{:?}", self.to_array()))
         }
     }
     impl From<String> for State {
@@ -136,8 +142,8 @@ mod basics {
 
         #[inline]
         fn get(&self, index: usize) -> bool {
-            let byte = self.array[index / 8];
-            ((byte >> (index % 8)) & 1) != 0
+            let bit = self.array[index / 8] >> (index % 8);
+            (bit & 1) != 0
         }
     }
 
@@ -238,11 +244,11 @@ impl Solution {
         use std::cmp::Reverse;
 
         let target: State = target.into();
-        
+
         let mut state: State = Default::default();
         let mut expander = Expander::new(deadends);
         let mut heap = BinaryHeap::with_capacity(100);
-        
+
         let mut step_cnt: u16 = 0;
         loop {
             if state == target {
@@ -258,7 +264,7 @@ impl Solution {
                         heap.push(Reverse(HeapEntry(step_cnt, h, *child_state)));
                     }
                 });
-            
+
             match heap.pop() {
                 Some(entry) => {
                     let entry = entry.0;
