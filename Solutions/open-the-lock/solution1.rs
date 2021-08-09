@@ -274,13 +274,13 @@ impl Solution {
             step_cnt += 1;
             
             let (sz, arr) = expander.expand(state);
-            (&arr[0..sz]).iter()
+            let it = (&arr[0..sz]).iter()
                 .map(|child_state| {
-                    (expander.heuristic(*child_state, target), *child_state)
-                })
-                .for_each(|(h, child_state)| {
-                    heap.push(Reverse(HeapEntry(step_cnt, h, child_state)));
+                    let child_state = *child_state;
+                    let h = expander.heuristic(child_state, target);
+                    Reverse(HeapEntry(step_cnt, h, child_state))
                 });
+            heap.extend(it);
 
             match heap.pop() {
                 Some(entry) => {
