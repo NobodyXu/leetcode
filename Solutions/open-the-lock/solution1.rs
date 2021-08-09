@@ -1,5 +1,6 @@
 //! rustc --edition 2018 \
 //!     -C lto=yes \
+//!     -C codegen-units=1 \
 //!     -C opt-level=3 \
 //!     -C overflow-checks=no \
 //!     -C panic=abort \
