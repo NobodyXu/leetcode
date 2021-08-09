@@ -1,3 +1,10 @@
+//! rustc --edition 2018 \
+//!     -C lto=yes \
+//!     -C opt-level=3 \
+//!     -C overflow-checks=no \
+//!     -C panic=abort \
+//!     -C target-cpu=native \
+//!     solution1.rs
 include!("common.rs");
 
 mod basics {
