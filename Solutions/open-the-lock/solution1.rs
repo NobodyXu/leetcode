@@ -26,7 +26,7 @@ mod basics {
     const BITS: u8 = 4; // number of bits for one wheel
     const MASK: u16 = (1 << BITS) - 1;
     impl State {
-        #[inline]
+        #[inline(always)]
         fn rotate_up(mut self, wheel: Wheel) -> Self {
             let bits = wheel.0 * BITS;
             let val = (self.0 >> bits) & MASK;
@@ -41,7 +41,7 @@ mod basics {
             self
         }
 
-        #[inline]
+        #[inline(always)]
         fn rotate_down(mut self, wheel: Wheel) -> Self {
             let bits = wheel.0 * BITS;
             let val = (self.0 >> bits) & MASK;
@@ -55,6 +55,7 @@ mod basics {
             self
         }
 
+        #[inline(always)]
         fn to_array(self) -> [u8; 4] {
             let mut arr = [0_u8; 4];
 
@@ -65,6 +66,7 @@ mod basics {
             arr
         }
 
+        #[inline(always)]
         fn to_decimal(self) -> u16 {
             self.to_array()
                 .iter()
@@ -79,6 +81,7 @@ mod basics {
         }
     }
     impl From<String> for State {
+        #[inline(always)]
         fn from(s: String) -> Self {
             let mut state = 0;
             let bytes = s.into_bytes();
@@ -94,6 +97,7 @@ mod basics {
             Self(state)
         }
     }
+    #[inline(always)]
     fn distance(x: State, y: State) -> u8 {
         let x = x.to_array();
         let y = y.to_array();
@@ -141,13 +145,13 @@ mod basics {
         }
     }
     impl Bitset {
-        #[inline]
+        #[inline(always)]
         fn set(&mut self, index: usize) {
             let byte = &mut self.array[index / 8];
             *byte |= 1 << (index % 8);
         }
 
-        #[inline]
+        #[inline(always)]
         fn get(&self, index: usize) -> bool {
             let bit = self.array[index / 8] >> (index % 8);
             (bit & 1) != 0
@@ -173,6 +177,7 @@ mod basics {
         }
 
         /// Return (# num of states returned, states, as a fixed-size array)
+        #[inline(always)]
         fn do_expand(&self, state: State) -> (usize, [State; 8]) {
             let mut cnt: usize = 0;
             let mut states = [<State as Default>::default(); 8];
@@ -193,6 +198,7 @@ mod basics {
         }
 
         /// Return (# num of states returned, states, as a fixed-size array)
+        #[inline(always)]
         pub fn expand(&mut self, state: State) -> (usize, [State; 8]) {
             let index = state.to_decimal() as usize;
             if self.excluded.get(index) {
@@ -208,6 +214,7 @@ mod basics {
         ///
         /// Returns None if state != target and state has no child (hence it will never reach the target).
         /// Returns Some(0) if state == target, otherwise Some(positive number).
+        #[inline(always)]
         pub fn heuristic(&self, state: State, target: State) -> Option<u8> {
             return Some(distance(state, target));
         }
@@ -220,22 +227,26 @@ mod basics {
     #[derive(Copy, Clone, Debug)]
     pub struct HeapEntry(pub u16, pub u8, pub State);
     impl HeapEntry {
+        #[inline(always)]
         fn get_cost(self) -> u16 {
             self.0 + self.1 as u16
         }
     }
     impl PartialEq for HeapEntry {
+        #[inline(always)]
         fn eq(&self, other: &Self) -> bool {
             self.get_cost() == other.get_cost()
         }
     }
     impl Eq for HeapEntry {}
     impl PartialOrd for HeapEntry {
+        #[inline(always)]
         fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
             Some(self.cmp(other))
         }
     }
     impl Ord for HeapEntry {
+        #[inline(always)]
         fn cmp(&self, other: &Self) -> Ordering {
             self.get_cost().cmp(&other.get_cost())
         }
