@@ -16,15 +16,16 @@ impl Solution {
 
         let inc = {
             let num1_bytes = unsafe { num1.as_bytes_mut() };
-            let num2_bytes = num2.as_bytes();
 
             num1_bytes
                 .iter_mut()
                 .rev()
-                .zip(num2_bytes.iter().rev())
+                .zip(num2.as_bytes().iter().rev())
                 .for_each(|(x, y)| {
                    *x += *y - b'0';
                 });
+
+            drop(num2);
 
             let mut it = num1_bytes
                 .iter_mut()
